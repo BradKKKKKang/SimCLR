@@ -1,0 +1,6 @@
+base_config: stl10_baseline.yaml
+grid:
+  runtime.batch_size: [32, 64]
+  loss.reg_weight: [0.0, 0.5]
+  loss.hard_ratio: [0.25, 1.0]
+  loss.reg_form: [linear, square]

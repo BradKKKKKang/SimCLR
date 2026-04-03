@@ -25,3 +25,19 @@ class Model(nn.Module):
         feature = torch.flatten(x, start_dim=1)
         out = self.g(feature)
         return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
+
+
+def load_pretrained_encoder(model: Model, checkpoint_path: str) -> None:
+    checkpoint = load_checkpoint_file(checkpoint_path)
+    if isinstance(checkpoint, dict) and "model_state" in checkpoint:
+        state_dict = checkpoint["model_state"]
+    else:
+        state_dict = checkpoint
+    model.load_state_dict(state_dict, strict=False)
+
+
+def load_checkpoint_file(checkpoint_path: str):
+    try:
+        return torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    except TypeError:
+        return torch.load(checkpoint_path, map_location="cpu")
