@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.optim as optim
+from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.data import DataLoader
 
 from simclr.config.schema import TrainConfig, default_run_name
@@ -42,6 +43,20 @@ def build_optimizer(config: TrainConfig, model: torch.nn.Module) -> torch.optim.
         lr=config.optimizer.lr,
         weight_decay=config.optimizer.weight_decay,
     )
+
+
+def build_scheduler(
+    config: TrainConfig,
+    optimizer: torch.optim.Optimizer,
+) -> LRScheduler:
+    warmup_epochs = config.optimizer.warmup_epochs
+
+    def lr_lambda(epoch_idx: int) -> float:
+        if warmup_epochs > 0 and epoch_idx < warmup_epochs:
+            return float(epoch_idx + 1) / float(warmup_epochs)
+        return 1.0
+
+    return optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
 
 def build_dataloaders(config: TrainConfig):
@@ -103,6 +118,7 @@ def run_training(config: TrainConfig) -> Path:
     metadata, train_loader, memory_loader, test_loader = build_dataloaders(config)
     model = Model(config.model.feature_dim).to(device)
     optimizer = build_optimizer(config, model)
+    scheduler = build_scheduler(config, optimizer)
     criterion = build_loss(config)
     wandb_logger = WandbLogger(enabled=config.logging.use_wandb, config=config, run_dir=run_dir)
     history: list[dict[str, float | int | str]] = []
@@ -127,6 +143,7 @@ def run_training(config: TrainConfig) -> Path:
             memory_loader=memory_loader,
             test_loader=test_loader,
             optimizer=optimizer,
+            scheduler=scheduler,
             criterion=criterion,
             device=device,
             total_epochs=config.runtime.epochs,

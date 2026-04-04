@@ -12,7 +12,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Linear probe evaluation for SimCLR checkpoints.")
     parser.add_argument("--model-path", required=True, help="Path to best_knn.pth or last.pth.")
     parser.add_argument("--dataset", default="cifar10", choices=sorted(DATASET_REGISTRY.keys()))
-    parser.add_argument("--data-root", default="data")
+    parser.add_argument("--data-root", default="assets")
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--num-workers", type=int, default=4)

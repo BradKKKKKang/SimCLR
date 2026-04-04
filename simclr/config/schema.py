@@ -23,8 +23,9 @@ class ModelConfig:
 @dataclass
 class OptimizerConfig:
     name: str = "adam"
-    lr: float = 1e-3
+    lr: float = 5e-4
     weight_decay: float = 1e-6
+    warmup_epochs: int = 5
 
 
 @dataclass
@@ -80,6 +81,12 @@ class TrainConfig:
             raise ValueError("loss.reg_weight must be non-negative.")
         if self.optimizer.name.lower() != "adam":
             raise ValueError("Only the Adam optimizer is supported in this minimal framework.")
+        if self.optimizer.lr <= 0:
+            raise ValueError("optimizer.lr must be positive.")
+        if self.optimizer.warmup_epochs < 0:
+            raise ValueError("optimizer.warmup_epochs must be non-negative.")
+        if self.optimizer.warmup_epochs > self.runtime.epochs:
+            raise ValueError("optimizer.warmup_epochs must not exceed runtime.epochs.")
         if self.eval.knn_k <= 0:
             raise ValueError("eval.knn_k must be positive.")
 

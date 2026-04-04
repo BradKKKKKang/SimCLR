@@ -9,8 +9,9 @@ model:
 
 optimizer:
   name: adam
-  lr: 0.001
+  lr: 0.0005
   weight_decay: 0.000001
+  warmup_epochs: 5
 
 runtime:
   batch_size: 128
@@ -29,5 +30,5 @@ eval:
 
 logging:
   output_dir: runs
-  use_wandb: false
+  use_wandb: true
   run_name: stl10_hard_square

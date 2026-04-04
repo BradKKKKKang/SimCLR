@@ -43,6 +43,7 @@ def train_one_epoch(
                 "loss": total_loss.detach().item(),
                 "infonce_loss": loss_metrics["infonce_loss"].item(),
                 "reg_loss": loss_metrics["reg_loss"].item(),
+                "selected_pos_cos_mean": loss_metrics["selected_pos_cos_mean"].item(),
             },
             n=batch_size,
         )
@@ -66,6 +67,7 @@ def fit(
     memory_loader,
     test_loader,
     optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None,
     criterion: CompositeContrastiveLoss,
     device: torch.device,
     total_epochs: int,
@@ -78,6 +80,7 @@ def fit(
     best_knn_acc1 = float("-inf")
 
     for epoch in range(1, total_epochs + 1):
+        current_lr = float(optimizer.param_groups[0]["lr"])
         train_metrics = train_one_epoch(
             model=model,
             data_loader=train_loader,
@@ -100,11 +103,15 @@ def fit(
         epoch_metrics: dict[str, Any] = {"epoch": epoch}
         epoch_metrics.update(train_metrics)
         epoch_metrics.update(knn_metrics)
+        epoch_metrics["lr"] = current_lr
         history.append(epoch_metrics)
 
         is_best = knn_metrics["knn_acc@1"] > best_knn_acc1
         if is_best:
             best_knn_acc1 = knn_metrics["knn_acc@1"]
+
+        if scheduler is not None:
+            scheduler.step()
 
         if on_epoch_end is not None:
             on_epoch_end(epoch_metrics, is_best)

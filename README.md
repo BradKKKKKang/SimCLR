@@ -53,6 +53,8 @@ python scripts/train.py --config configs/stl10_hard_square.yaml
 python -m simclr.training.trainer --config configs/cifar100_baseline.yaml
 ```
 
+Warmup is controlled by `optimizer.warmup_epochs` in the YAML config, and sweep runs inherit that setting from their base config.
+
 Each run writes:
 
 - `config.yaml`
@@ -72,6 +74,7 @@ python -m simclr.runtime.sweep --config configs/cifar100_local_sweep.yaml
 ```
 
 The sweep script reads a base config, expands the requested grid, and launches each run sequentially.
+Each expanded combination becomes one training run; it does not generate extra YAML files on disk.
 
 ### Linear probe
 Linear probe is kept separate from the main training loop:
@@ -127,9 +130,9 @@ When `logging.use_wandb: false`, training runs normally and only writes local ou
 There are some difference between this implementation and official implementation, the model (`ResNet50`) is trained on 
 one NVIDIA TESLA V100(32G) GPU:
 1. No `Gaussian blur` used;
-2. `Adam` optimizer with learning rate `1e-3` is used to replace `LARS` optimizer;
+2. `Adam` optimizer with base learning rate `5e-4` and `5` epochs of linear warmup is used to replace `LARS` optimizer;
 3. No `Linear learning rate scaling` used;
-4. No `Linear Warmup` and `CosineLR Schedule` used.
+4. No `CosineLR Schedule` used; after warmup, the learning rate stays constant.
 
 <table>
 	<tbody>
