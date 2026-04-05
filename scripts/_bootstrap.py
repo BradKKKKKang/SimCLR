@@ -8,7 +8,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WANDB_PROJECT = "simclr_hard_positive"
 WANDB_ENTITY = "zihengkang_astribot"
-WANDB_MODE = "online"
+WANDB_MODE = "offline"
 WANDB_API_KEY = "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"
 WANDB_DIR = REPO_ROOT / "wandb"
 

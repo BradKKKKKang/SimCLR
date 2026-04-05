@@ -65,16 +65,19 @@ Each run writes:
 into a run directory under `logging.output_dir`.
 
 ### Sweep
-Local sweep support is intentionally minimal:
+Local sweep supports serial execution by default and GPU-parallel execution when `CUDA_VISIBLE_DEVICES` is set:
 
 ```bash
 python scripts/sweep.py --config configs/cifar100_local_sweep.yaml
 python scripts/sweep.py --config configs/stl10_local_sweep.yaml
-python -m simclr.runtime.sweep --config configs/cifar100_local_sweep.yaml
+CUDA_VISIBLE_DEVICES=0,1 python scripts/sweep.py --config configs/cifar100_local_sweep.yaml
 ```
 
-The sweep script reads a base config, expands the requested grid, and launches each run sequentially.
+The sweep script reads a base config, expands the requested grid, and launches each run sequentially unless
+`CUDA_VISIBLE_DEVICES` is set. When GPUs are specified, it dispatches one experiment per idle GPU and keeps polling
+for newly free GPUs by checking memory usage with `nvidia-smi`.
 Each expanded combination becomes one training run; it does not generate extra YAML files on disk.
+Parallel sweep only launches independent single-GPU experiments. It does not use DDP, `torchrun`, or NCCL collectives.
 
 ### Linear probe
 Linear probe is kept separate from the main training loop:
@@ -119,12 +122,19 @@ in the YAML if you want to enable it, then export:
 ```bash
 export WANDB_PROJECT=your_project
 export WANDB_ENTITY=your_entity    # optional
-export WANDB_MODE=offline          # optional, defaults to online
+export WANDB_MODE=offline          # optional, defaults to offline
 export WANDB_API_KEY=your_key      # optional when already logged in locally
 export WANDB_DIR=/path/to/wandb    # optional
 ```
 
 When `logging.use_wandb: false`, training runs normally and only writes local outputs.
+Offline W&B runs can be uploaded later with:
+
+```bash
+wandb sync wandb/
+```
+
+or by syncing a specific offline run directory under `wandb/`.
 
 ## Results
 There are some difference between this implementation and official implementation, the model (`ResNet50`) is trained on 
