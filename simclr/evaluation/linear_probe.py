@@ -83,6 +83,7 @@ def run_linear_probe(
     num_workers: int = 4,
     device_name: str = "auto",
     output_dir: str = "linear_probe_runs",
+    run_tag: str | None = None,
     download: bool = True,
 ) -> tuple[Path, Path]:
     if device_name == "auto":
@@ -125,7 +126,8 @@ def run_linear_probe(
 
     output_dir_path = Path(output_dir)
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir_path / f"{Path(model_path).stem}_{dataset}_linear_probe.csv"
+    output_name = run_tag or f"{Path(model_path).stem}_{dataset}"
+    output_path = output_dir_path / f"{output_name}_linear_probe.csv"
 
     results = {
         "train_loss": [],
@@ -137,7 +139,7 @@ def run_linear_probe(
     }
 
     best_acc = float("-inf")
-    best_model_path = output_dir_path / f"{Path(model_path).stem}_{dataset}_linear_probe_best.pth"
+    best_model_path = output_dir_path / f"{output_name}_linear_probe_best.pth"
 
     for _epoch in range(1, epochs + 1):
         train_loss, train_acc_1, train_acc_5 = train_or_eval_epoch(model, train_loader, criterion, device, optimizer)

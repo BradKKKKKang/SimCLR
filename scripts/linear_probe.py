@@ -18,6 +18,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--device", default="auto")
     parser.add_argument("--output-dir", default="linear_probe_runs")
+    parser.add_argument("--run-tag", default=None, help="Optional tag used to name linear probe outputs.")
     return parser.parse_args()
 
 
@@ -32,6 +33,7 @@ def main() -> None:
         num_workers=args.num_workers,
         device_name=args.device,
         output_dir=args.output_dir,
+        run_tag=args.run_tag,
     )
     print(f"linear_probe_csv={output_path}")
     print(f"linear_probe_best_model={best_model_path}")
